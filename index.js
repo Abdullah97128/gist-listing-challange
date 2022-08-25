@@ -33,10 +33,14 @@ app.get('/:username', async (req, res) => {
     }
 
     const since = new Date().toISOString();
-    if (userData) {
-      //  Add Since param to req
+    if (userData)
       options.since = userData.since;
 
+
+    // Load gists for user
+    const { data: gists } = await octokit.request('GET /users/{username}/gists', options)
+
+    if (userData) {
       // update user
       user.assign({ since }).value()
       usersCollection.write()
@@ -48,16 +52,16 @@ app.get('/:username', async (req, res) => {
       }).write()
     }
 
-    const { data: gists } = await octokit.request('GET /users/{username}/gists', options)
-
     return res.json({ username, gists });
   } catch (error) {
-    console.error('error ===>>>', error);
     if (error?.status === 404) {
+      // Throw error if user not found
       return res.status(error?.status).json({ error: "User not found" });
     } else if (error?.response?.data?.message) {
+      // Throw error if we have proper message to show
       return res.status(error?.status).json(error?.response?.data?.message);
     }
+    // Throw General error
     return res.json({ error: 'Error occurred while loading data' })
   }
 });
