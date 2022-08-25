@@ -30,6 +30,7 @@ app.get('/:username', async (req, res) => {
 
     const options = {
       username,
+      per_page: 100
     }
 
     const since = new Date().toISOString();
